@@ -39,17 +39,8 @@ async def on_ready():
     BOT_ONLINE = True
 
 
-@client.event
-async def on_message(message):
-    # make sure bot doesn't respond to it's own messages to avoid infinite loop
-    if message.author == client.user:
-        return
 
-    if message.content == '!dbd':
-        await message.channel.send(get_codes())
-
-
-@tasks.loop(seconds=60)
+@tasks.loop(seconds=600)
 async def code_update():
     global BOT_ONLINE, old_date_string, new_date_string
 
