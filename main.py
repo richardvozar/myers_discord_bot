@@ -52,6 +52,9 @@ async def code_update():
     updated_selector = soup.select('div p strong')
     updated_string = str(updated_selector.pop().get_text())
 
+    # changing the updates
+    old_date_string, new_date_string = new_date_string, updated_string
+
     codes_src = soup.select('#dbd-codes-working + ul li')
 
     codes_src = list(codes_src)
@@ -64,9 +67,8 @@ async def code_update():
     if BOT_ONLINE:
         channel = client.get_channel(947922114516766741)
 
-        if old_date_string == '' or new_date_string == '':
+        if old_date_string == '':
             old_date_string = updated_string
-            new_date_string = updated_string
             await channel.send(get_codes(updated_string, codes))
 
         if old_date_string == new_date_string:
