@@ -9,6 +9,7 @@ from discord.ext import tasks, commands
 from datetime import datetime as dt
 
 
+
 URL = 'https://progameguides.com/dead-by-daylight/dead-by-daylight-codes/'
 BOT_ONLINE = False
 
@@ -21,11 +22,15 @@ load_dotenv()
 client = discord.Client()
 
 
+# cutting the first line of the message
+def cut_first_line(msg):
+    return msg[msg.index('\n')+1:]
+
 
 # updated_string --> str | [Updated Feb. 24]
 # codes --> dict | 'CODE': 'Reedem for XX BP'
 def get_codes(updated_string, codes):
-    ret = '__**Dead by Daylight Reedem Codes:**__ ['
+    ret = '**Dead by Daylight Reedem Codes:** ['
     ret += updated_string
     ret += ']\n'
     for c, bp in codes.items():
@@ -41,9 +46,12 @@ async def on_ready():
 
 
 
+
 @tasks.loop(seconds=10)
 async def code_update():
     global BOT_ONLINE, old_codes, new_codes
+
+    dbd_codes_channel = client.get_channel(947922114516766741)
 
     page = requests.get(URL)
 
@@ -60,6 +68,13 @@ async def code_update():
 
 
     if BOT_ONLINE:
+
+        last_msg_list = await dbd_codes_channel.history(limit=1).flatten()
+        last_msg = last_msg_list[0].content
+        #print(cut_first_line(last_msg))
+
+
+
 
         # putting codes in the dictionary 'codes'
         codes = {}
@@ -83,7 +98,16 @@ async def code_update():
             #print('old_codes=""', old_codes, new_codes)
             date = dt.now().strftime('%Y. %b %m. %X')
             print('-- log: FIRST RUN: ' + date)
-            await channel.send(get_codes(date, codes))
+
+
+            #print(len(cut_first_line(last_msg)), len(cut_first_line(get_codes(date, codes))))
+
+
+
+            if abs(len(cut_first_line(last_msg)) - len(cut_first_line(get_codes(date, codes)))) < 5:
+                return
+            else:
+                await channel.send(get_codes(date, codes))
 
         elif old_codes == new_codes:
             #print('old_codes == new_codes', old_codes, new_codes)
@@ -93,7 +117,12 @@ async def code_update():
             #print('wut')
             date = dt.now().strftime('%Y. %b %m. %X')
             print('-- log: NEW CODE: ' + date)
-            await channel.send(get_codes(date, codes))
+
+
+            if abs(len(cut_first_line(last_msg)) - len(cut_first_line(get_codes(date, codes)))) < 5:
+                return
+            else:
+                await channel.send(get_codes(date, codes))
 
 
 
